@@ -1,23 +1,25 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
+const path = require('path'); // Necesario para servir el HTML
 
 const app = express();
-const port = 3000;
+// Render te dará un puerto en la variable 'PORT'. Si no existe, usamos 3000.
+const port = process.env.PORT || 3000;
 
 // --- Middlewares ---
-// Usamos CORS para permitir peticiones desde el frontend
 app.use(cors());
-// Usamos express.json() para poder entender los JSON que envía el frontend
 app.use(express.json());
 
 // --- Conexión a la Base de Datos ---
-// Esto crea el archivo 'database.db' si no existe
-const db = new sqlite3.Database('./database.db', (err) => {
+// Usamos path.join para crear la ruta a la base de datos en la misma carpeta.
+// Esta base de datos se borrará con cada reinicio del servidor.
+const dbPath = path.join(__dirname, 'database.db');
+const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error("Error al abrir la base de datos:", err.message);
   } else {
-    console.log('Conectado a la base de datos SQLite.');
+    console.log('Conectado a la base de datos SQLite (en memoria efímera).');
     // Creamos la tabla si no existe
     db.run(`CREATE TABLE IF NOT EXISTS requests (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25,6 +27,13 @@ const db = new sqlite3.Database('./database.db', (err) => {
       timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
   }
+});
+
+// --- Ruta para servir el frontend ---
+// Cuando alguien visite la URL raíz (ej: https://mi-app.onrender.com/)
+// le enviaremos el archivo index.html
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // --- Definición de Rutas (API) ---
@@ -37,7 +46,6 @@ app.get('/requests', (req, res) => {
       res.status(500).json({ "error": err.message });
       return;
     }
-    // Enviamos los resultados como JSON
     res.json({
       message: "success",
       data: rows
@@ -47,7 +55,7 @@ app.get('/requests', (req, res) => {
 
 // RUTA [POST] /add: Para registrar una nueva solicitud
 app.post('/add', (req, res) => {
-  const { content } = req.body; // Obtenemos el texto desde el body de la petición
+  const { content } = req.body; 
 
   if (!content) {
     res.status(400).json({ "error": "El contenido no puede estar vacío." });
@@ -60,7 +68,6 @@ app.post('/add', (req, res) => {
       res.status(500).json({ "error": err.message });
       return;
     }
-    // Enviamos una respuesta exitosa, incluyendo el ID del nuevo registro
     res.json({
       message: "success",
       data: { id: this.lastID, content: content }
@@ -70,5 +77,5 @@ app.post('/add', (req, res) => {
 
 // --- Iniciar el Servidor ---
 app.listen(port, () => {
-  console.log(`Servidor corriendo en http://localhost:${port}`);
+  console.log(`Servidor corriendo en el puerto ${port}`);
 });
