@@ -34,33 +34,85 @@
     <ul id="requests-list">
       </ul>
   </div>
-<script>
-    // const API_URL = 'http://localhost:3000'; // <-- COMENTA O BORRA ESTO
-    const API_URL = ''; // <-- AÑADE ESTO. Usa una ruta relativa.
 
-    // ... (el resto de tu script 'fetch' es idéntico) ...
-    
+  <script>
+    // ¡CAMBIO CLAVE!
+    // Al dejar la URL vacía, el script usará rutas relativas.
+    // Hará peticiones a 'https://tu-app.onrender.com/add'
+    // en lugar de a 'http://localhost:3000/add'
+    const API_URL = '';
+
     // Función para AÑADIR una solicitud
     async function addRequest() {
-      // ...
+      const contentInput = document.getElementById('request-content');
+      const content = contentInput.value;
+
+      if (!content) {
+        alert('Por favor, escribe algo.');
+        return;
+      }
+
       try {
-        const response = await fetch(`${API_URL}/add`, { // Esto ahora funcionará
-        // ...
+        const response = await fetch(`${API_URL}/add`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ content: content }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Error al guardar');
+        }
+
+        contentInput.value = ''; // Limpiar el input
+        alert('¡Solicitud registrada con éxito!');
+        loadRequests(); // Recargar la lista automáticamente
+
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al registrar la solicitud.');
       }
     }
 
     // Función para CARGAR todas las solicitudes
     async function loadRequests() {
-      // ...
+      const listElement = document.getElementById('requests-list');
+      listElement.innerHTML = '<li>Cargando...</li>'; // Mostrar feedback
+
       try {
-        const response = await fetch(`${API_URL}/requests`); // Esto ahora funcionará
-        // ...
+        const response = await fetch(`${API_URL}/requests`);
+        if (!response.ok) {
+          throw new Error('Error al cargar');
+        }
+        
+        const result = await response.json();
+        const requests = result.data;
+
+        // Limpiar la lista
+        listElement.innerHTML = '';
+
+        if (requests.length === 0) {
+          listElement.innerHTML = '<li>No hay solicitudes registradas.</li>';
+          return;
+        }
+
+        // Añadir cada solicitud a la lista
+        requests.forEach(req => {
+          const li = document.createElement('li');
+          li.innerHTML = `<strong>ID ${req.id}:</strong> ${req.content}`;
+          listElement.appendChild(li);
+        });
+
+      } catch (error) {
+        console.error('Error:', error);
+        listElement.innerHTML = '<li>Error al cargar las solicitudes.</li>';
       }
     }
-    
-    // ...
-</script>
 
- 
+    // Cargar las solicitudes al iniciar la página
+    window.onload = loadRequests;
+  </script>
+
 </body>
 </html>
