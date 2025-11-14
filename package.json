@@ -1,7 +1,7 @@
 {
-  "name": "basic-db-server",
+  "name": "render-sqlite-demo",
   "version": "1.0.0",
-  "description": "Un servidor simple para leer y escribir en una DB",
+  "description": "Servidor para Render sin disco persistente",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
