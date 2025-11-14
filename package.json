@@ -1,0 +1,14 @@
+{
+  "name": "basic-db-server",
+  "version": "1.0.0",
+  "description": "Un servidor simple para leer y escribir en una DB",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "sqlite3": "^5.1.6",
+    "cors": "^2.8.5"
+  }
+}
